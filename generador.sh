@@ -1,30 +1,50 @@
-name: Generador de Contraseñas
+#!/bin/bash
 
-on:
-  workflow_dispatch:
-    inputs:
-      semilla:
-        description: 'Palabras base para generar la contraseña'
-        required: false
-        default: 'Eduardo Luis'
-      admin_password:
-        description: 'Contraseña de administrador para verificación'
-        required: false
-        default: 'YjQ2ZTYzNz'
+# --- Configuración ---
+HISTORIAL_FILE="output/historial_contrasenas.txt"
+DICCIONARIO="diccionario_comun.txt"
+mkdir -p output
 
-jobs:
-  generar:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Clonar repositorio
-        uses: actions/checkout@v3
+# --- Detecta si está en GitHub Actions ---
+if [ "$GITHUB_ACTIONS" = "true" ]; then
+    palabras=${INPUT_SEMILLA:-"Eduardo Luis"}
+    echo "⚙️ Modo automático (GitHub Actions). Semilla: '$palabras'"
+else
+    read -p "🔑 Ingresa las palabras para generar la contraseña (Enter para 'Eduardo Luis'): " palabras
+    palabras=${palabras:-"Eduardo Luis"}
+fi
 
-      - name: Instalar dependencias
-        run: sudo apt-get update && sudo apt-get install -y openssl
+# --- Crear diccionario si no existe ---
+if [ ! -f "$DICCIONARIO" ]; then
+  cat > "$DICCIONARIO" <<EOF
+password
+123456
+admin
+eduardo
+luis
+wifi
+telmex
+huawei
+contraseña
+EOF
+fi
 
-      - name: Ejecutar generador
-        run: |
-          chmod +x generador.sh
-          INPUT_SEMILLA="${{ github.event.inputs.semilla }}" \
-          INPUT_ADMIN_PASSWORD="${{ github.event.inputs.admin_password }}" \
-          ./generador.sh
+# --- Validar semilla contra diccionario ---
+while IFS= read -r palabra; do
+  if [[ "$palabras" == *"$palabra"* ]]; then
+    echo "⚠️ Semilla contiene palabra común: '$palabra'."
+    if [ "$GITHUB_ACTIONS" != "true" ]; then
+      read -p "¿Quieres continuar de todos modos? (s/n): " respuesta
+      if [ "$respuesta" != "s" ]; then
+        echo "🔄 Generación cancelada."
+        exit 1
+      fi
+    fi
+  fi
+done < "$DICCIONARIO"
+
+# --- Generar contraseña segura ---
+contrasena=$(echo -n "$palabras" | sha256sum | base64 | cut -c1-12)
+fecha_hora=$(date +"%Y-%m-%d %H:%M:%S")
+echo "📅 $fecha_hora | Contraseña: $contrasena | Semilla: '$palabras'" >> "$HISTORIAL_FILE"
+echo "🔐 Contraseña generada: $contrasena"

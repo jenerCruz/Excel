@@ -5,7 +5,7 @@ HISTORIAL_FILE="output/historial_contrasenas.txt"
 DICCIONARIO="diccionario_comun.txt"
 mkdir -p output
 
-# --- Detecta si está en GitHub Actions ---
+# --- Entradas desde GitHub Actions o modo interactivo ---
 if [ "$GITHUB_ACTIONS" = "true" ]; then
     palabras=${INPUT_SEMILLA:-"Eduardo Luis"}
     echo "⚙️ Modo automático (GitHub Actions). Semilla: '$palabras'"

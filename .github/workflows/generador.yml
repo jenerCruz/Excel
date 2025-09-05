@@ -1,4 +1,4 @@
-name: Generador de Contraseñas
+name: Generador de Contraseñas WiFi
 
 on:
   workflow_dispatch:
@@ -8,13 +8,14 @@ on:
         required: false
         default: 'Eduardo Luis'
       admin_password:
-        description: 'Contraseña de administrador para verificación'
+        description: 'Contraseña de administrador'
         required: false
         default: 'YjQ2ZTYzNz'
 
 jobs:
   generar:
     runs-on: ubuntu-latest
+
     steps:
       - name: Clonar repositorio
         uses: actions/checkout@v3
@@ -28,3 +29,9 @@ jobs:
           INPUT_SEMILLA="${{ github.event.inputs.semilla }}" \
           INPUT_ADMIN_PASSWORD="${{ github.event.inputs.admin_password }}" \
           ./generador.sh
+
+      - name: Guardar historial como artefacto
+        uses: actions/upload-artifact@v3
+        with:
+          name: historial-contrasenas
+          path: output/historial_contrasenas.txt

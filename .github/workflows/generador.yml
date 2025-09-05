@@ -48,3 +48,4 @@ contrasena=$(echo -n "$palabras" | sha256sum | base64 | cut -c1-12)
 fecha_hora=$(date +"%Y-%m-%d %H:%M:%S")
 echo "📅 $fecha_hora | Contraseña: $contrasena | Semilla: '$palabras'" >> "$HISTORIAL_FILE"
 echo "🔐 Contraseña generada: $contrasena"
+.
